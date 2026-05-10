@@ -9,3 +9,6 @@ bin/
 
 # Debug symbols — not useful for players
 GameData/WarpDriveMod/Plugins/WarpDriveMod.pdb
+
+# Release zips — attach to GitHub releases instead
+release/

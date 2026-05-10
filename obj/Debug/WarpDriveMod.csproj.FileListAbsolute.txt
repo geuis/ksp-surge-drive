@@ -7,3 +7,4 @@
 /usr/local/apps/ksp_mods/warpdrive/obj/Debug/WarpDriveMod.csproj.CoreCompileInputs.cache
 /usr/local/apps/ksp_mods/warpdrive/obj/Debug/WarpDriveMod.dll
 /usr/local/apps/ksp_mods/warpdrive/obj/Debug/WarpDriveMod.pdb
+/usr/local/apps/ksp_mods/warpdrive/obj/Debug/WarpDriveMod.sourcelink.json
