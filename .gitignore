@@ -1,1 +1,11 @@
 .claude
+
+# KSP proprietary DLLs — cannot redistribute
+libs/
+
+# Build intermediates
+obj/
+bin/
+
+# Debug symbols — not useful for players
+GameData/WarpDriveMod/Plugins/WarpDriveMod.pdb
