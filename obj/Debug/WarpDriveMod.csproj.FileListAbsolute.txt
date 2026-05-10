@@ -1,0 +1,9 @@
+/usr/local/apps/ksp_mods/warpdrive/GameData/WarpDriveMod/Plugins/WarpDriveMod.dll
+/usr/local/apps/ksp_mods/warpdrive/GameData/WarpDriveMod/Plugins/WarpDriveMod.pdb
+/usr/local/apps/ksp_mods/warpdrive/obj/Debug/WarpDriveMod.csproj.AssemblyReference.cache
+/usr/local/apps/ksp_mods/warpdrive/obj/Debug/WarpDriveMod.GeneratedMSBuildEditorConfig.editorconfig
+/usr/local/apps/ksp_mods/warpdrive/obj/Debug/WarpDriveMod.AssemblyInfoInputs.cache
+/usr/local/apps/ksp_mods/warpdrive/obj/Debug/WarpDriveMod.AssemblyInfo.cs
+/usr/local/apps/ksp_mods/warpdrive/obj/Debug/WarpDriveMod.csproj.CoreCompileInputs.cache
+/usr/local/apps/ksp_mods/warpdrive/obj/Debug/WarpDriveMod.dll
+/usr/local/apps/ksp_mods/warpdrive/obj/Debug/WarpDriveMod.pdb

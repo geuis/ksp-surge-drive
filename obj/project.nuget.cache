@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "qbqAnQykup8=",
+  "success": true,
+  "projectFilePath": "/usr/local/apps/ksp_mods/warpdrive/WarpDriveMod.csproj",
+  "expectedPackageFiles": [
+    "/Users/charleslawrence/.nuget/packages/microsoft.netframework.referenceassemblies/1.0.3/microsoft.netframework.referenceassemblies.1.0.3.nupkg.sha512",
+    "/Users/charleslawrence/.nuget/packages/microsoft.netframework.referenceassemblies.net472/1.0.3/microsoft.netframework.referenceassemblies.net472.1.0.3.nupkg.sha512"
+  ],
+  "logs": []
+}
