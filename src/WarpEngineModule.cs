@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace WarpDriveMod
+namespace SurgeDriveMod
 {
     public class WarpEngineModule : PartModule
     {
@@ -67,14 +67,83 @@ namespace WarpDriveMod
             float throttle = vessel.ctrlState.mainThrottle;
             throttleDisplay = Mathf.RoundToInt(throttle * 100) + "%";
 
-            float totalAccel = 0f;
+            float totalCurrentAccel = 0f;
+            float totalDecelAccel = 0f;
             foreach (Part p in vessel.parts)
             {
                 WarpEngineModule warp = p.FindModuleImplementing<WarpEngineModule>();
-                if (warp != null && warp.isActive)
-                    totalAccel += warp.maxWarpSpeed * throttle * warp.actualEcRatio;
+                if (warp == null || !warp.isActive) continue;
+                totalCurrentAccel += warp.maxWarpSpeed * throttle * warp.actualEcRatio;
+                totalDecelAccel += warp.maxWarpSpeed;
             }
-            vesselAccelDisplay = $"{totalAccel / 9.80665f:F2} g";
+            vesselAccelDisplay = $"{totalCurrentAccel / 9.80665f:F2} g";
+
+            if (IsPrimaryDrive())
+                UpdateMarker(totalDecelAccel);
+        }
+
+        private bool IsPrimaryDrive()
+        {
+            foreach (Part p in vessel.parts)
+            {
+                var warp = p.FindModuleImplementing<WarpEngineModule>();
+                if (warp != null) return warp == this;
+            }
+            return false;
+        }
+
+        private WarpMarkerRenderer GetOrCreateRenderer()
+        {
+            var r = vessel.gameObject.GetComponent<WarpMarkerRenderer>();
+            if (r == null)
+            {
+                r = vessel.gameObject.AddComponent<WarpMarkerRenderer>();
+                r.Init(vessel);
+            }
+            return r;
+        }
+
+        private void UpdateMarker(float totalDecelAccel)
+        {
+            var renderer = GetOrCreateRenderer();
+            ITargetable target = vessel.targetObject;
+
+            if (target == null || totalDecelAccel <= 0f || vessel.orbit == null)
+            {
+                renderer.hasValidMarker = false;
+                return;
+            }
+
+            double a = totalDecelAccel;
+            Vector3d vesselPos = vessel.GetWorldPos3D();
+            Vector3d targetPos = (Vector3d)target.GetTransform().position;
+            Vector3d relPos = vesselPos - targetPos;
+            double D = relPos.magnitude;
+
+            Vector3d relVel = vessel.GetObtVelocity() - target.GetObtVelocity();
+            double vRel = relVel.magnitude;
+
+            if (vRel < 1.0 || D < 1.0)
+            {
+                renderer.hasValidMarker = false;
+                return;
+            }
+
+            // Positive closing rate means approaching target
+            double closingRate = -Vector3d.Dot(relVel, relPos.normalized);
+            if (closingRate <= 0.0)
+            {
+                renderer.hasValidMarker = false;
+                return;
+            }
+
+            double dDecel = (vRel * vRel) / (2.0 * a);
+            double timeToFlip = (D - dDecel) / closingRate;
+
+            double now = Planetarium.GetUniversalTime();
+            renderer.markerUT = timeToFlip > 0.0 ? now + timeToFlip : now;
+            renderer.timeToMarker = timeToFlip;
+            renderer.hasValidMarker = true;
         }
 
         public override void OnFixedUpdate()
@@ -89,15 +158,21 @@ namespace WarpDriveMod
                 return;
             }
 
-            double vesselMass = vessel.GetTotalMass();
-            double ecPerSecond = vesselMass * maxWarpSpeed * throttle;
+            double ecPerSecond = maxWarpSpeed * throttle;
             double ecRequired = ecPerSecond * Time.fixedDeltaTime;
             double ecReceived = part.RequestResource("ElectricCharge", ecRequired);
 
+            if (ecReceived <= 0.0)
+            {
+                isActive = false;
+                actualEcRatio = 0f;
+                ecDrainDisplay = "0.0";
+                Events["ToggleEngine"].guiName = "Enable Warp Engine";
+                return;
+            }
+
             actualEcRatio = ecRequired > 0 ? (float)(ecReceived / ecRequired) : 0f;
             ecDrainDisplay = $"{ecPerSecond * actualEcRatio:F1}";
-
-            if (actualEcRatio <= 0f) return;
 
             float warpSpeed = maxWarpSpeed * throttle * actualEcRatio;
             Vector3 forward = part.transform.up;

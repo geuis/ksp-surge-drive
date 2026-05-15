@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <!-- Copy this file to KSPPath.props and uncomment one line below for your platform. -->
+    <!-- KSPPath.props is gitignored — never commit it. -->
+
+    <!-- macOS Steam: -->
+    <!-- <KSPGameData>/Users/YOUR_USER/Library/Application Support/Steam/steamapps/common/Kerbal Space Program/GameData</KSPGameData> -->
+
+    <!-- Windows Steam: -->
+    <!-- <KSPGameData>C:\Program Files (x86)\Steam\steamapps\common\Kerbal Space Program\GameData</KSPGameData> -->
+  </PropertyGroup>
+</Project>

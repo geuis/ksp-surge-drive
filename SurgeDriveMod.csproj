@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <AssemblyName>SurgeDriveMod</AssemblyName>
+    <RootNamespace>SurgeDriveMod</RootNamespace>
+    <OutputPath>GameData/SurgeDriveMod/Plugins</OutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <CopyLocalLockFileAssemblies>false</CopyLocalLockFileAssemblies>
+    <Nullable>disable</Nullable>
+    <ImplicitUsings>disable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>libs/Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>libs/UnityEngine.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>libs/UnityEngine.CoreModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>libs/UnityEngine.IMGUIModule.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Per-developer local path config — create KSPPath.props from KSPPath.props.example -->
+  <Import Project="KSPPath.props" Condition="Exists('KSPPath.props')" />
+
+  <Target Name="DeployToKSP" AfterTargets="Build" Condition="'$(KSPGameData)' != ''">
+    <ItemGroup>
+      <ModFiles Include="$(ProjectDir)GameData\SurgeDriveMod\**\*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(ModFiles)"
+          DestinationFiles="@(ModFiles->'$(KSPGameData)/SurgeDriveMod/%(RecursiveDir)%(Filename)%(Extension)')" />
+    <Message Text="Deployed → $(KSPGameData)/SurgeDriveMod/" Importance="high" />
+  </Target>
+
+</Project>

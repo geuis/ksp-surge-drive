@@ -7,8 +7,20 @@ libs/
 obj/
 bin/
 
-# Debug symbols — not useful for players
-GameData/WarpDriveMod/Plugins/WarpDriveMod.pdb
+# Compiled mod output — build artifacts, not for redistribution via git
+GameData/**/Plugins/*.dll
+GameData/**/Plugins/*.pdb
 
 # Release zips — attach to GitHub releases instead
 release/
+
+# Per-developer KSP install path — create from KSPPath.props.example
+KSPPath.props
+
+# Visual Studio (Windows)
+.vs/
+*.user
+*.suo
+
+# Working notes / research docs
+MAP_MARKER_RESEARCH.md

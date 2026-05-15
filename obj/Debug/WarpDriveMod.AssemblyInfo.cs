@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WarpDriveMod")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e7d1450c6235b3a44e9917550a876a3eff377b04")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+940e943c8c29fcefbf5bf4785abdb0a765ac617d")]
 [assembly: System.Reflection.AssemblyProductAttribute("WarpDriveMod")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WarpDriveMod")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

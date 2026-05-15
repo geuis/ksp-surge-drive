@@ -415,25 +415,24 @@
     ]
   },
   "packageFolders": {
-    "/Users/charleslawrence/.nuget/packages/": {}
+    "C:\\Users\\geuis\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/usr/local/apps/ksp_mods/warpdrive/WarpDriveMod.csproj",
-      "projectName": "WarpDriveMod",
-      "projectPath": "/usr/local/apps/ksp_mods/warpdrive/WarpDriveMod.csproj",
-      "packagesPath": "/Users/charleslawrence/.nuget/packages/",
-      "outputPath": "/usr/local/apps/ksp_mods/warpdrive/obj/",
+      "projectUniqueName": "C:\\Users\\geuis\\Desktop\\ksp-surge-drive\\SurgeDriveMod.csproj",
+      "projectName": "SurgeDriveMod",
+      "projectPath": "C:\\Users\\geuis\\Desktop\\ksp-surge-drive\\SurgeDriveMod.csproj",
+      "packagesPath": "C:\\Users\\geuis\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\geuis\\Desktop\\ksp-surge-drive\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/Users/charleslawrence/.nuget/NuGet/NuGet.Config"
+        "C:\\Users\\geuis\\AppData\\Roaming\\NuGet\\NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net472"
       ],
       "sources": {
-        "/usr/local/Cellar/dotnet/10.0.107/libexec/library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -451,8 +450,7 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      },
-      "SdkAnalysisLevel": "10.0.100"
+      }
     },
     "frameworks": {
       "net472": {
@@ -465,7 +463,7 @@
             "autoReferenced": true
           }
         },
-        "runtimeIdentifierGraphPath": "/usr/local/Cellar/dotnet/10.0.107/libexec/sdk/10.0.107/RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.421\\RuntimeIdentifierGraph.json"
       }
     }
   }
