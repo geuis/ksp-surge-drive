@@ -1,5 +1,7 @@
 # Surge Drive Mod — Current State Summary
 
+> **Engineering baseline (proposed):** [Requirements](docs/REQUIREMENTS.md) · [Physics model](docs/PHYSICS_MODEL.md) · [Architecture](docs/ARCHITECTURE.md) · [Test plan](docs/TEST_PLAN.md). These documents do not claim in-game verification.
+
 ## Lore Basis
 Inspired by the SURGE drive from the Bobiverse series (Dennis E. Taylor). The drive envelops the entire vessel in a field that acts on every particle equally, producing zero internal g-forces for occupants. Powered by large energy sources (fusion reactors in-lore; Electric Charge in KSP).
 
@@ -7,13 +9,15 @@ Inspired by the SURGE drive from the Bobiverse series (Dennis E. Taylor). The dr
 
 ## Project Structure
 ```
-warpdrive/
-├── src/WarpEngineModule.cs       — PartModule implementation
-├── libs/                         — KSP + Unity DLL references (not shipped)
-├── GameData/WarpDriveMod/
-│   ├── Plugins/WarpDriveMod.dll  — compiled output
-│   └── warp_engine.cfg           — part definition
-├── WarpDriveMod.csproj
+ksp-surge-drive/
+├── src/WarpEngineModule.cs
+├── src/WarpMarkerRenderer.cs
+├── libs/                    — local, ignored KSP/Unity DLL references
+├── GameData/SurgeDriveMod/
+│   └── warp_engine.cfg
+├── SurgeDriveMod.csproj
+├── KSPPath.props.example
+├── docs/                    — proposed engineering baseline
 └── PLAN.md
 ```
 
@@ -39,9 +43,9 @@ warpdrive/
 - `deltaV = acceleration × throttle × fixedDeltaTime` per tick
 
 ### Energy Consumption
-- `EC/s = vessel total mass (t) × acceleration setting (m/s²) × throttle × 1.0`
+- `EC/s = acceleration setting (m/s²) × throttle` per drive in the current implementation; the rate is a gameplay resource conversion, not a physical power law.
 - Drawn each fixed update via `part.RequestResource("ElectricCharge", ...)`
-- If EC is insufficient, thrust scales down proportionally to EC received vs. required — no hard cutoff
+- If EC is insufficient but nonzero, the velocity increment scales proportionally. When a step receives zero EC, current code disables that drive; game behavior remains unverified (Issue #1).
 - EC drain rate displayed live in PAW
 
 ### PAW (right-click in flight)
@@ -64,7 +68,7 @@ warpdrive/
 ### Known Behaviors / Implementation Notes
 - `part.force_activate()` required in `OnStart` — without it KSP does not call `OnFixedUpdate` or `OnUpdate` on custom PartModules
 - A one-frame coroutine resets the main throttle to 0 on scene load (otherwise it initializes at 50% due to axis group initialization)
-- Multiple Surge Drives on one vessel stack additively — `Vessel Accel` display sums all active instances
+- Multiple drives request EC and change vessel velocity separately; displayed acceleration sums their power-scaled settings. Actual multi-drive acceleration requires in-game verification (Issue #2).
 
 ---
 
@@ -73,3 +77,12 @@ warpdrive/
 - EC consumption not yet tested in-game
 - Higher acceleration tiers (200+ m/s²) intended to require reactor mods
 - Future: heat generation, failure states, visual effects, UI throttle window
+
+
+## Engineering limitations and open issues
+
+- `maxWarpSpeed` is a historical code name; its value is an **acceleration** in m/s², not a maximum speed. Avoid renaming persisted fields without migration planning.
+- Current flip guidance is a straight-line constant-acceleration approximation, not an exact orbital intercept solution.
+- [Issue #1](https://github.com/geuis/ksp-surge-drive/issues/1): propulsion after EC loss (unverified fix).
+- [Issue #2](https://github.com/geuis/ksp-surge-drive/issues/2): multiple drives reportedly saturate near 30g (undetermined cause).
+- Refer to [the test plan](docs/TEST_PLAN.md) before concluding either issue is fixed.

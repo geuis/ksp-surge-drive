@@ -1,3 +1,5 @@
+> **Historical planning document.** This file describes the original MVP and contains outdated naming, platform-specific instructions, and proposed features rather than an authoritative description of current runtime behavior. For the current source-aligned overview, see [README.md](README.md), [engineering requirements](docs/REQUIREMENTS.md), [physics model](docs/PHYSICS_MODEL.md), [architecture](docs/ARCHITECTURE.md), and [test plan](docs/TEST_PLAN.md). Current project assembly: `SurgeDriveMod.csproj`, output: `GameData/SurgeDriveMod/Plugins/SurgeDriveMod.dll`. The runtime field `maxWarpSpeed` expresses acceleration (m/s²), not a speed limit. EC rate in the current code is `acceleration × throttle` per drive, not mass-dependent. No tests are claimed complete.
+
 # KSP Warp Engine Mod — Project Plan (VS Code + Codex Workflow)
 
 ## Overview
