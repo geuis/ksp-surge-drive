@@ -22,6 +22,10 @@ namespace SurgeDriveMod
 
         public float actualEcRatio = 0f;
 
+        // True only if this drive applied a SURGE delta-v in its latest physics update.
+        [KSPField(guiActive = true, guiName = "SURGE State")]
+        public string surgeStateDisplay = "Idle";
+
         [KSPEvent(guiActive = true, guiName = "Disable Warp Engine")]
         public void ToggleEngine()
         {
@@ -155,29 +159,49 @@ namespace SurgeDriveMod
             {
                 ecDrainDisplay = "0.0";
                 actualEcRatio = 0f;
+                surgeStateDisplay = isActive ? "Idle" : "Disabled";
+                return;
+            }
+
+            // Reject invalid physics steps before requesting power or modifying velocity.
+            float dt = Time.fixedDeltaTime;
+            if (dt <= 0f || float.IsNaN(dt) || float.IsInfinity(dt))
+            {
+                actualEcRatio = 0f;
+                ecDrainDisplay = "0.0";
+                surgeStateDisplay = "Invalid physics step";
                 return;
             }
 
             double ecPerSecond = maxWarpSpeed * throttle;
-            double ecRequired = ecPerSecond * Time.fixedDeltaTime;
+            double ecRequired = ecPerSecond * dt;
             double ecReceived = part.RequestResource("ElectricCharge", ecRequired);
 
-            if (ecReceived <= 0.0)
+            if (double.IsNaN(ecReceived) || double.IsInfinity(ecReceived) || ecReceived <= 0.0)
             {
                 isActive = false;
                 actualEcRatio = 0f;
                 ecDrainDisplay = "0.0";
                 Events["ToggleEngine"].guiName = "Enable Warp Engine";
+                surgeStateDisplay = "No EC / disabled";
                 return;
             }
 
-            actualEcRatio = ecRequired > 0 ? (float)(ecReceived / ecRequired) : 0f;
+            // Resource providers may return partial EC. Never turn an anomalous
+            // over-delivery into more acceleration than was requested.
+            actualEcRatio = Mathf.Clamp01((float)(ecReceived / ecRequired));
             ecDrainDisplay = $"{ecPerSecond * actualEcRatio:F1}";
+            if (actualEcRatio <= 0f)
+            {
+                surgeStateDisplay = "No EC";
+                return;
+            }
 
             float warpSpeed = maxWarpSpeed * throttle * actualEcRatio;
             Vector3 forward = part.transform.up;
-            Vector3 deltaV = forward * warpSpeed * Time.fixedDeltaTime;
+            Vector3 deltaV = forward * warpSpeed * dt;
             vessel.ChangeWorldVelocity(deltaV);
+            surgeStateDisplay = actualEcRatio < 1f ? "Power limited" : "Accelerating";
         }
     }
 }
