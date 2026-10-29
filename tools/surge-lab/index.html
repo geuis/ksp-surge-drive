@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SURGE Lab 2 — Flight Dynamics Workbench</title>
+<style>
+:root{color-scheme:dark;--bg:#070d19;--panel:#101e32;--edge:#2d435f;--txt:#ecf4ff;--muted:#9bb1c7;--cyan:#65e7e9;--amber:#ffca6f;--red:#ff7e92}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.5 system-ui,Arial,sans-serif}
+main{max-width:1500px;margin:auto;padding:18px}h1{font-size:29px;margin:0}h2{font-size:17px;margin:0 0 12px}h3{font-size:14px;margin:12px 0 8px}p,small{color:var(--muted)}a{color:var(--cyan)}header{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.eyebrow{color:var(--cyan);font-weight:750;letter-spacing:.1em;font-size:11px}.layout{display:grid;grid-template-columns:minmax(285px,340px) minmax(420px,1fr) minmax(245px,295px);gap:12px}
+.panel{background:var(--panel);border:1px solid var(--edge);border-radius:12px;padding:14px;min-width:0}.scroll{max-height:820px;overflow-y:auto}
+label{display:block;color:#dbeaff;margin:9px 0 3px}input,select{width:100%;padding:8px;background:#091629;color:var(--txt);border:1px solid var(--edge);border-radius:7px;font:inherit}input[type=range]{padding:0;accent-color:var(--cyan)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.buttons{display:flex;gap:7px;flex-wrap:wrap;margin:12px 0}button{background:var(--cyan);color:#08202c;border:0;border-radius:8px;padding:9px 13px;font-weight:800;cursor:pointer}button.alt{background:#2c4360;color:var(--txt)}button.warn{background:#6a3340;color:#fff}
+#flight{width:100%;height:420px;display:block;background:radial-gradient(circle at 50% 50%,#153050,#060d1a 78%);border:1px solid var(--edge);border-radius:10px}
+#plot{width:100%;height:172px;display:block;background:#091629;border:1px solid var(--edge);border-radius:8px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:12px 0}.stat{background:#09172b;border:1px solid var(--edge);border-radius:9px;padding:9px}.stat span{color:var(--muted);display:block;font-size:11px}.stat b{font-size:17px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.drive{border:1px solid var(--edge);border-radius:9px;padding:10px;margin:8px 0}.driveTop{display:flex;justify-content:space-between;align-items:center}.tiny{font-size:11px;color:var(--muted)}.meter{height:8px;border-radius:7px;background:#26374b;overflow:hidden}.fill{height:100%;background:var(--cyan)}
+code{color:var(--cyan)}.pill{color:var(--amber);font-size:12px;border:1px solid #775d37;padding:5px 8px;border-radius:7px}.notice{border-left:3px solid var(--amber);background:#292534;padding:10px;color:#f5dcb3;font-size:12px;margin-top:12px}table{border-collapse:collapse;width:100%}td,th{padding:6px;text-align:left;border-bottom:1px solid var(--edge);font-size:12px}td:last-child{text-align:right}
+footer{margin-top:14px;color:var(--muted);font-size:12px}#alert{color:var(--amber)}.legend{font-size:11px;color:var(--muted)}
+@media(max-width:1120px){.layout{grid-template-columns:310px 1fr}.right{grid-column:1/-1}.scroll{max-height:none}}@media(max-width:720px){main{padding:9px}.layout{grid-template-columns:1fr}.right{grid-column:auto}.stats{grid-template-columns:1fr 1fr}#flight{height:330px}}
+</style></head><body><main>
+<header><div><div class="eyebrow">SURGE LAB / EXPERIMENTAL FLIGHT DYNAMICS</div><h1>Drive & Navigation Workbench <small>v2</small></h1><small>Bobiverse-inspired KSP engineering companion · Standalone browser simulation</small></div><span class="pill">Illustrative model · Not KSP telemetry</span></header>
+<div class="layout">
+<section class="panel scroll"><h2>Mission & power</h2>
+<label>Preset mission</label><select id="preset"><option value="intercept">Target intercept / flip burn</option><option value="power">Reactor starvation</option><option value="opposed">Opposing drives</option><option value="lateral">Lateral velocity correction</option><option value="custom">Custom configuration</option></select>
+<div class="row"><div><label>Physics interpretation</label><select id="mode"><option value="part">Current mod: per-drive EC requests</option><option value="bus">Proposed: shared vessel power budget</option></select></div><div><label>Autopilot mode</label><select id="guidance"><option value="manual">Manual heading</option><option value="flip">Auto flip / approach</option><option value="match">Target velocity match</option></select></div></div>
+<div class="row"><div><label>Throttle (%)</label><input id="throttle" type="range" min="0" max="100" value="100"></div><div><label>Ship heading (°)</label><input id="heading" type="number" min="-360" max="360" step="5" value="0"></div></div>
+<div class="row"><div><label>Reactor output (EC/s)</label><input id="reactor" type="number" min="0" max="1000000" value="400"></div><div><label>Battery capacity (EC)</label><input id="capacity" type="number" min="0" max="1000000" value="10000"></div></div>
+<div class="row"><div><label>Initial stored EC</label><input id="battery" type="number" min="0" max="1000000" value="10000"></div><div><label>Battery discharge limit (EC/s)</label><input id="discharge" type="number" min="0" max="1000000" value="1000"></div></div>
+<h3>Initial state (2D inertial frame)</h3>
+<div class="row"><div><label>Target X (km)</label><input id="tx" type="number" value="30000"></div><div><label>Target Y (km)</label><input id="ty" type="number" value="0"></div></div>
+<div class="row"><div><label>Ship Vx (m/s)</label><input id="vx" type="number" value="0"></div><div><label>Ship Vy (m/s)</label><input id="vy" type="number" value="0"></div></div>
+<div class="row"><div><label>Target Vx (m/s)</label><input id="tvx" type="number" value="0"></div><div><label>Target Vy (m/s)</label><input id="tvy" type="number" value="0"></div></div>
+<h3>Drive array <button class="alt" id="add" style="float:right">+ Add</button></h3>
+<div id="drives"></div>
+<div class="buttons"><button id="run">Pause</button><button class="alt" id="step">Step +1 s</button><button class="alt" id="reset">Reset</button><button class="warn" id="cut">Emergency cut</button></div>
+<div class="row"><div><label>Playback</label><select id="rate"><option value="1">1×</option><option value="10" selected>10×</option><option value="60">60×</option><option value="300">300×</option></select></div><div><label>Plot variable</label><select id="plotvar"><option value="speed">Speed</option><option value="range">Range to target</option><option value="charge">Battery EC</option><option value="accel">Acceleration</option></select></div></div>
+</section>
+<section class="panel"><h2>Live trajectory <span class="tiny">· inertial XY plane · positions auto-scaled</span></h2>
+<canvas id="flight" aria-label="2D ship and target trajectory"></canvas><div class="legend">● cyan: ship · ◉ gold: target · solid trail: ship history · dashed: target path · arrow: ship heading · circle: predicted braking distance</div>
+<div class="stats" id="stats"></div>
+<h2>Flight history</h2><canvas id="plot" aria-label="Flight data history chart"></canvas><p id="alert" role="status"></p>
+</section>
+<section class="panel right"><h2>Engineering telemetry</h2><div id="telemetry"></div>
+<h3>Per-drive budget</h3><div id="drivebudget"></div>
+<h3>Model comparison</h3><div class="tiny">Per-part supply allocation is simulated in drive order. Actual KSP resource graph, crossfeed and callback order are unknown; the shared-bus mode is a design proposal.</div>
+<div class="notice">SURGE Lab cannot demonstrate that the reported ~30 g ceiling is fixed. No gravity, atmospheric forces, rotation dynamics, KSP resource routing or patched-conic orbits are simulated. Target-relative guidance uses straight-line constant-acceleration estimates and can miss a moving target.</div>
+</section></div><footer>Equations: requested EC/s = a × throttle per drive; applied acceleration = a × throttle × clamp(EC delivered / EC requested, 0, 1) along each oriented drive axis. World velocity integrates summed acceleration using a fixed 0.1 s step. <a href="https://github.com/jvholmes87/ksp-surge-drive">GitHub fork</a> · <a href="https://github.com/geuis/ksp-surge-drive">Upstream</a></footer>
+</main>
+<script>
+"use strict";
+const $=id=>document.getElementById(id),rad=Math.PI/180,finite=x=>Number.isFinite(x)?x:0,clamp=(v,l,h)=>Math.max(l,Math.min(h,finite(v))),val=(id,min=-1e9,max=1e9)=>clamp(+$ (id).value,min,max),fmt=(v,d=1)=>Number.isFinite(v)?v.toLocaleString(undefined,{maximumFractionDigits:d}):"—";
+const V=(x,y)=>({x,y}),add=(a,b)=>V(a.x+b.x,a.y+b.y),sub=(a,b)=>V(a.x-b.x,a.y-b.y),mul=(a,k)=>V(a.x*k,a.y*k),len=a=>Math.hypot(a.x,a.y),unit=a=>len(a)>1e-8?mul(a,1/len(a)):V(0,0),dot=(a,b)=>a.x*b.x+a.y*b.y,angle=a=>Math.atan2(a.y,a.x);
+let drives=[{a:200,offset:0,enabled:true},{a:200,offset:0,enabled:true}],state,history=[],running=true,prev=0,accum=0,autoh=0;
+const config=()=>({throttle:val("throttle",0,100)/100,head:val("heading")*rad,reactor:val("reactor",0,1e6),capacity:val("capacity",0,1e6),battery:val("battery",0,1e6),discharge:val("discharge",0,1e6),target:V(val("tx")*1000,val("ty")*1000),vel:V(val("vx"),val("vy")),targetVel:V(val("tvx"),val("tvy"))});
+function addDrive(){if(drives.length>=8)return;drives.push({a:200,offset:0,enabled:true});renderDrives();reset();}
+function renderDrives(){const root=$("drives");root.replaceChildren();drives.forEach((drive,i)=>{const block=document.createElement("div");block.className="drive";block.innerHTML='<div class="driveTop"><strong>Drive '+(i+1)+'</strong><button class="alt remove" type="button">Remove</button></div><div class="row"><label>Acceleration (m/s²)<input type="number" class="a" min="0" max="200" value="'+drive.a+'"></label><label>Relative axis (°)<input type="number" class="axis" min="-180" max="180" value="'+drive.offset+'"></label></div><label><input class="enabled" type="checkbox" '+(drive.enabled?"checked":"")+' style="width:auto"> Enabled</label>';
+block.querySelector(".a").onchange=e=>{drive.a=clamp(+e.target.value,0,200);$("preset").value="custom";};
+block.querySelector(".axis").onchange=e=>{drive.offset=clamp(+e.target.value,-180,180);$("preset").value="custom";};
+block.querySelector(".enabled").onchange=e=>drive.enabled=e.target.checked;
+block.querySelector(".remove").onclick=()=>{if(drives.length<=1)return;drives.splice(i,1);renderDrives();};root.append(block);});}
+function reset(){const c=config();state={t:0,p:V(0,0),v:c.vel,target:c.target,targetVel:c.targetVel,ec:Math.min(c.capacity,c.battery),a:V(0,0),req:0,used:0,status:"Ready",details:[],heading:c.head,closest:len(c.target),cut:false};history=[snapshot()];autoh=c.head;render();}
+function snapshot(){return {t:state.t,speed:len(state.v),range:len(sub(state.target,state.p)),charge:state.ec,accel:len(state.a),p:{...state.p},target:{...state.target}};}
+function drivePower(c,dt){const active=drives.map((d,i)=>({i,enabled:d.enabled&&!state.cut,req:d.enabled&&!state.cut?d.a*c.throttle:0,offset:d.offset,a:d.a}));const demand=active.reduce((s,d)=>s+d.req,0);const usableBattery=Math.min(state.ec/dt,c.discharge);
+const budget=c.reactor+usableBattery;let available=Math.min(demand,budget);const details=[];
+for(const d of active){const received=$("mode").value==="part"?Math.min(d.req,available):(demand>0?d.req*Math.min(1,budget/demand):0);
+if($("mode").value==="part")available-=received;
+details.push({...d,received,ratio:d.req?received/d.req:0});}
+const used=details.reduce((s,d)=>s+d.received,0),genUsed=Math.min(used,c.reactor),batteryDrain=Math.max(0,used-genUsed),charge=Math.min(c.capacity,Math.max(0,state.ec-batteryDrain*dt+Math.max(0,c.reactor-used)*dt));
+return {details,demand,used,charge};}
+function guidanceAngle(c,dt){if($("guidance").value==="manual")return c.head;const rel=sub(state.target,state.p),rv=sub(state.targetVel,state.v),r=len(rel),toward=unit(rel);
+let aMax=drives.reduce((s,d)=>s+(d.enabled&&!state.cut?d.a:0),0)*c.throttle;
+const closing=dot(sub(state.v,state.targetVel),toward);
+const braking=closing>0&&aMax>0?closing*closing/(2*aMax):0;
+if($("guidance").value==="match")return len(rv)>1?angle(rv):angle(toward);
+return r<=braking*1.1&&closing>0?angle(rv):angle(rel);}
+function tick(dt){const c=config(),power=drivePower(c,dt);state.heading=guidanceAngle(c,dt);let a=V(0,0);
+power.details.forEach(d=>{const theta=state.heading+d.offset*rad;a=add(a,V(Math.cos(theta)*d.a*c.throttle*d.ratio,Math.sin(theta)*d.a*c.throttle*d.ratio));});
+state.p=add(state.p,add(mul(state.v,dt),mul(a,.5*dt*dt)));state.v=add(state.v,mul(a,dt));state.target=add(state.target,mul(state.targetVel,dt));state.t+=dt;state.a=a;state.ec=power.charge;state.req=power.demand;state.used=power.used;state.details=power.details;
+const range=len(sub(state.target,state.p));state.closest=Math.min(state.closest,range);state.status=state.cut?"Emergency cut / coasting":power.demand===0?"Idle":power.used===0?"Power unavailable":power.used<power.demand?"Power limited":"Nominal";
+if(state.t>360000)running=false;if(Math.round(state.t*10)%10===0){history.push(snapshot());if(history.length>1500)history.shift();}}
+function fit(canvas){const r=canvas.getBoundingClientRect(),s=Math.min(2,devicePixelRatio||1),w=Math.max(1,Math.round(r.width*s)),h=Math.max(1,Math.round(r.height*s));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;}return [w,h];}
+function drawFlight(){const can=$("flight"),[w,h]=fit(can),ctx=can.getContext("2d");ctx.clearRect(0,0,w,h);
+const pts=history.map(e=>e.p).concat([state.p,state.target,...history.filter((_,i)=>i%10===0).map(e=>e.target)]);
+let minX=Math.min(0,...pts.map(p=>p.x)),maxX=Math.max(0,...pts.map(p=>p.x)),minY=Math.min(0,...pts.map(p=>p.y)),maxY=Math.max(0,...pts.map(p=>p.y));const sx=maxX-minX,sy=maxY-minY,pad=.15;minX-=Math.max(sx*.15,1000);maxX+=Math.max(sx*.15,1000);minY-=Math.max(sy*.15,1000);maxY+=Math.max(sy*.15,1000);const scale=Math.min(w/(maxX-minX),h/(maxY-minY)),ox=(w-(maxX-minX)*scale)/2,oy=(h-(maxY-minY)*scale)/2;const project=p=>V(ox+(p.x-minX)*scale,h-(oy+(p.y-minY)*scale));
+ctx.strokeStyle="#243b58";ctx.lineWidth=1;for(let j=0;j<=8;j++){const x=j*w/8,y=j*h/8;ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();}
+const route=(arr,color,dash)=>{if(arr.length<2)return;ctx.beginPath();arr.forEach((p,i)=>{const q=project(p);i?ctx.lineTo(q.x,q.y):ctx.moveTo(q.x,q.y)});ctx.setLineDash(dash?[5,6]:[]);ctx.strokeStyle=color;ctx.lineWidth=2;ctx.stroke();ctx.setLineDash([]);};
+route(history.map(p=>p.p).concat([state.p]),"#65e7e9",false);route(history.map(p=>p.target).concat([state.target]),"#d9a85e",true);
+const mark=(p,color,r)=>{const q=project(p);ctx.fillStyle=color;ctx.beginPath();ctx.arc(q.x,q.y,r,0,Math.PI*2);ctx.fill();return q;};
+mark(V(0,0),"#506d8d",4);const target=mark(state.target,"#ffca6f",7),ship=mark(state.p,"#65e7e9",7);
+ctx.strokeStyle="#fff";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(ship.x,ship.y);ctx.lineTo(ship.x+26*Math.cos(state.heading),ship.y-26*Math.sin(state.heading));ctx.stroke();
+const rel=sub(state.target,state.p),u=unit(rel),closing=dot(sub(state.v,state.targetVel),u),maxA=Math.max(0,drives.reduce((s,d)=>s+(d.enabled?d.a:0),0)*config().throttle);
+const stop=maxA>0&&closing>0?closing*closing/(2*maxA):0;
+if(stop>0&&Number.isFinite(stop)){const r=Math.min(250,stop*scale);ctx.beginPath();ctx.arc(ship.x,ship.y,r,0,2*Math.PI);ctx.strokeStyle="#ffca6f66";ctx.setLineDash([4,5]);ctx.stroke();ctx.setLineDash([]);}
+ctx.font="12px system-ui";ctx.fillStyle="#e0effe";ctx.fillText("SHIP",ship.x+12,ship.y-8);ctx.fillStyle="#ffca6f";ctx.fillText("TARGET",target.x+12,target.y-8);
+}
+function drawPlot(){const can=$("plot"),[w,h]=fit(can),ctx=can.getContext("2d");ctx.clearRect(0,0,w,h);const key=$("plotvar").value,data=history.concat([snapshot()]),maxT=Math.max(1,state.t),maxY=Math.max(1,...data.map(p=>p[key]));ctx.strokeStyle="#253f58";for(let i=0;i<=4;i++){const y=12+(h-27)*i/4;ctx.beginPath();ctx.moveTo(40,y);ctx.lineTo(w-10,y);ctx.stroke();}
+ctx.strokeStyle="#65e7e9";ctx.lineWidth=2;ctx.beginPath();data.forEach((p,i)=>{const x=40+(w-50)*p.t/maxT,y=h-15-(h-27)*p[key]/maxY;i?ctx.lineTo(x,y):ctx.moveTo(x,y);});ctx.stroke();ctx.fillStyle="#a8bfd5";ctx.font="11px system-ui";ctx.fillText(fmt(maxY),4,14);ctx.fillText(fmt(state.t)+" s",w-72,h-2);}
+function render(){if(!state)return;drawFlight();drawPlot();const range=len(sub(state.target,state.p)),relv=sub(state.v,state.targetVel),clos=dot(relv,unit(sub(state.target,state.p))),am=len(state.a),brake=am>0&&clos>0?clos*clos/(2*am):NaN;
+const data=[["Elapsed",fmt(state.t,1)+" s"],["Ship speed",fmt(len(state.v))+" m/s"],["Target range",fmt(range/1000,2)+" km"],["Rel. speed",fmt(len(relv))+" m/s"],["Effective accel",fmt(am/9.80665,2)+" g"],["Closing rate",fmt(clos)+" m/s"],["Stored energy",fmt(state.ec)+" EC"],["EC used / req.",fmt(state.used)+"/"+fmt(state.req)]];$("stats").innerHTML=data.map(([k,v])=>'<div class="stat"><span>'+k+'</span><b>'+v+'</b></div>').join("");
+$("alert").textContent=state.status+" · "+(Number.isFinite(brake)?"Approx. stopping distance "+fmt(brake/1000,2)+" km":"No valid braking estimate")+" · closest approach so far "+fmt(state.closest/1000,2)+" km";
+const table=[["Ship X, Y",fmt(state.p.x/1000,1)+", "+fmt(state.p.y/1000,1)+" km"],["Ship Vx, Vy",fmt(state.v.x)+", "+fmt(state.v.y)+" m/s"],["Target Vx, Vy",fmt(state.targetVel.x)+", "+fmt(state.targetVel.y)+" m/s"],["Accel X, Y",fmt(state.a.x,2)+", "+fmt(state.a.y,2)+" m/s²"],["Heading",fmt(state.heading/rad,1)+"°"],["Requested / available",fmt(state.req)+"/"+fmt(state.used)+" EC/s"],["Power satisfaction",state.req?fmt(100*state.used/state.req,1)+"%":"n/a"]];
+$("telemetry").innerHTML="<table>"+table.map(([k,v])=>"<tr><td>"+k+"</td><td>"+v+"</td></tr>").join("")+"</table>";
+$("drivebudget").innerHTML=state.details.map(d=>'<div class="drive"><strong>Drive '+(d.i+1)+'</strong><div class="tiny">EC '+fmt(d.received)+' / '+fmt(d.req)+' per sec · '+fmt(d.ratio*100)+'%</div><div class="meter"><div class="fill" style="width:'+clamp(d.ratio*100,0,100)+'%"></div></div></div>').join("")||'<small>Step simulation to see allocations.</small>';
+}
+function preset(name){$("guidance").value="flip";$("mode").value="part";$("throttle").value=100;$("heading").value=0;$("reactor").value=400;$("battery").value=10000;$("capacity").value=10000;$("discharge").value=1000;$("tx").value=30000;$("ty").value=0;$("vx").value=0;$("vy").value=0;$("tvx").value=0;$("tvy").value=0;drives=[{a:200,offset:0,enabled:true},{a:200,offset:0,enabled:true}];
+if(name==="power"){$("reactor").value=0;$("battery").value=1000;$("capacity").value=1000;$("discharge").value=400;$("guidance").value="manual";}
+if(name==="opposed"){drives[1].offset=180;$("guidance").value="manual";}
+if(name==="lateral"){$("vy").value=3000;$("ty").value=10000;$("guidance").value="match";}
+renderDrives();reset();}
+$("preset").onchange=e=>{if(e.target.value!=="custom")preset(e.target.value);};
+$("add").onclick=addDrive;$("run").onclick=()=>{running=!running;$("run").textContent=running?"Pause":"Run";};$("step").onclick=()=>{for(let i=0;i<10;i++)tick(.1);render();};
+$("cut").onclick=()=>{state.cut=!state.cut;$("cut").textContent=state.cut?"Restore drive enable":"Emergency cut";render();};
+$("reset").onclick=()=>{reset();$("cut").textContent="Emergency cut";};
+["tx","ty","vx","vy","tvx","tvy","battery","capacity"].forEach(id=>$(id).addEventListener("change",()=>{if(state.t===0)reset();}));
+$("plotvar").onchange=render;window.onresize=render;function frame(now){if(prev&&running){accum+=Math.min(.05,(now-prev)/1000)*val("rate",1,300);let steps=0;while(accum>=.1&&steps<600){tick(.1);accum-=.1;steps++;}if(steps)render();}prev=now;requestAnimationFrame(frame);}
+preset("intercept");requestAnimationFrame(frame);
+</script></body></html>
